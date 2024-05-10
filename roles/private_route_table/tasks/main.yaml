@@ -1,0 +1,37 @@
+
+
+---
+
+   - name: creat private route table
+     ec2_vpc_route_table:
+       vpc_id: "{{ osaka_vpc.vpc.id }}"
+       region: "{{ aws_region }}"
+       state: present
+       tags:
+         name: osaka_private_RT
+     register: osaka_private_RT
+
+   - name: get nat gateway id
+     ec2_vpc_nat_gateway_facts:
+       region: "{{ aws_region }}"
+     register: nat_gate_info
+   
+   - name: debug nat_gate_info
+     debug:
+       var: nat_gate_info
+
+   - name: associate route table with private subnets
+     ec2_vpc_route_table:
+       vpc_id: "{{ osaka_vpc.vpc.id }}"
+       subnet_id: "{{item.subnet.id }}"
+       route_table_id: "{{ osaka_private_RT.route_table.id }}"
+       dest_cidr_block: "0.0.0.0/0"
+       gateway_id: "{{ nat_gate_info.result.nat_gateway_id }}"
+     with_items: 
+       - "{{ private_subnet_3a }}"
+       - "{{ private_subnet_4c }}"
+       - "{{ private_subnet_5a }}"
+       - "{{ private_subnet_6c }}"
+       - "{{ private_subnet_7a }}"
+       - "{{ private_subnet_8c }}"
+    
