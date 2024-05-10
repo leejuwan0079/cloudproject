@@ -1,0 +1,28 @@
+---
+
+
+- name: check if nat gateway already exists
+  ec2_vpc_nat_gateway_info:
+    region: "{{ aws_region }}"
+    filters:
+      vpc-id: "{{ osaka_vpc.vpc.id }}"
+  register: nat_gateway_info
+
+- name: debug nat gateway info
+  debug:
+    var: nat_gateway_info
+
+- name: create nat gateway if not exists
+  ec2_vpc_nat_gateway:
+    subnet_id: "{{ public_subnet_1a.subnet.id }}"
+    state: present
+    region: "{{ aws_region }}"
+    wait: true
+    tags:
+      name: osaka_NATGW
+  when: nat_gateway_info.result | length == 0      
+  register: osaka_NATGW
+
+- name: debug nat gateway
+  debug:
+    var: osaka_NATGW 
